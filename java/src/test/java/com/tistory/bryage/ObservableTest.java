@@ -1,21 +1,20 @@
 package com.tistory.bryage;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import java.util.Observable;
 import java.util.Observer;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
+@Slf4j
 public class ObservableTest {
 
     @Test
-    public void singleObserver() {
+    public void singleObserver() throws InterruptedException {
 
-        Observer o1 = (o, arg) -> System.out.println(
-                Thread.currentThread().getName() +
-                        " / observable=" + o.toString() +
-                        " / arg=" + arg);
+        Observer o1 = (o, arg) ->
+                log.debug("{} / arg={}", Thread.currentThread().getName(), arg);
 
         IntObservable intObservable = new IntObservable();
         intObservable.addObserver(o1);
@@ -23,20 +22,19 @@ public class ObservableTest {
         ExecutorService executors = Executors.newSingleThreadExecutor();
         executors.submit(intObservable);
 
-        System.out.println(Thread.currentThread().getName() + " / EXIT");
+        log.debug("{} / EXIT", Thread.currentThread().getName());
+        executors.awaitTermination(1, TimeUnit.SECONDS);
+        executors.shutdown();
     }
 
     @Test
-    public void multipleObserver() {
+    public void multipleObserver() throws InterruptedException {
 
-        Observer o1 = (o, arg) -> System.out.println(
-                Thread.currentThread().getName() +
-                        " / observable=" + o.toString() +
-                        " / arg=" + arg);
+        Observer o1 = (o, arg) ->
+                log.debug("{} / arg={}", Thread.currentThread().getName(), arg);
 
-        Observer o2 = (o, arg) -> System.out.println(
-                Thread.currentThread().getName() +
-                        " just hello");
+        Observer o2 = (o, arg) ->
+                log.debug("{} just hello", Thread.currentThread().getName());
 
         IntObservable intObservable = new IntObservable();
         intObservable.addObserver(o1);
@@ -45,7 +43,9 @@ public class ObservableTest {
         ExecutorService executors = Executors.newSingleThreadExecutor();
         executors.submit(intObservable);
 
-        System.out.println(Thread.currentThread().getName() + " / EXIT");
+        log.debug("{} / EXIT", Thread.currentThread().getName());
+        executors.awaitTermination(1, TimeUnit.SECONDS);
+        executors.shutdown();
     }
 
     static class IntObservable extends Observable implements Runnable {
